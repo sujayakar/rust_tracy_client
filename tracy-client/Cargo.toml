@@ -14,6 +14,7 @@ High level bindings to the client libraries for the Tracy profiler
 
 [dependencies]
 tracy-client-sys = { path = "../tracy-client-sys", version = "0.9.0", default-features = false }
+const_format = { version = "0.2.8", features = ["fmt"] }
 
 [features]
 default = [ "enable" ]

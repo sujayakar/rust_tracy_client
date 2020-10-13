@@ -13,6 +13,7 @@
 //! `enable` feature flag provided by this crate.
 //!
 //! [Tracy profiler]: https://github.com/wolfpld/tracy
+#![feature(const_fn, const_mut_refs, const_type_name)]
 
 use std::alloc;
 use std::ffi::CString;
@@ -20,11 +21,89 @@ use std::ffi::CString;
 #[doc(hidden)]
 pub use tracy_client_sys as sys;
 
+#[doc(hidden)]
+pub use const_format as cf;
+
 /// A handle representing a span of execution.
 pub struct Span(
     sys::TracyCZoneCtx,
     std::marker::PhantomData<*mut sys::TracyCZoneCtx>,
 );
+
+impl Span {
+    #[doc(hidden)]
+    pub fn private_new(ctx: sys::TracyCZoneCtx) -> Self {
+        Self(ctx, std::marker::PhantomData)
+    }
+}
+
+#[cfg(not(feature = "enable"))]
+#[macro_export]
+macro_rules! static_span {
+    () => {{
+        ()
+    }};
+    ($name:expr) => {{
+        ()
+    }};
+}
+
+#[cfg(feature = "enable")]
+#[macro_export]
+macro_rules! static_span {
+    () => {{
+        const LINENO: u32 = line!();
+
+        const FILE: &'static str = file!();
+        const MODULE_PATH: &'static str = module_path!();
+        const FILE_C: &'static str = $crate::cf::concatc!(MODULE_PATH, ":", FILE, "\0");
+
+        // Source: https://stackoverflow.com/questions/38088067/equivalent-of-func-or-function-in-rust
+        fn f() {}
+        const fn type_name_of<T>(_: &T) -> &'static str {
+            std::any::type_name::<T>()
+        }
+        const F_FN_NAME: &'static str = type_name_of(&f);
+        const FN_NAME_C: &'static str = $crate::cf::concatc!($crate::cf::Sliced(F_FN_NAME, 0..F_FN_NAME.len() - 3), "\0");
+
+        const src_loc: $crate::sys::___tracy_source_location_data = $crate::sys::___tracy_source_location_data {
+            name: FN_NAME_C.as_ptr() as *const _,
+            function: FN_NAME_C.as_ptr() as *const _,
+            file: FILE_C.as_ptr() as *const _,
+            line: LINENO,
+            color: 0,
+        };
+        let ctx = unsafe { $crate::sys::___tracy_emit_zone_begin_callstack(&src_loc as *const _, 16, 1) };
+        $crate::Span::private_new(ctx)
+    }};
+    ($name:expr) => {{
+        const LINENO: u32 = line!();
+
+        const NAME_C: &'static str = $crate::cf::concatc!($name, "\0");
+
+        const FILE: &'static str = file!();
+        const MODULE_PATH: &'static str = module_path!();
+        const FILE_C: &'static str = $crate::cf::concatc!(MODULE_PATH, ":", FILE, "\0");
+
+        // Source: https://stackoverflow.com/questions/38088067/equivalent-of-func-or-function-in-rust
+        fn f() {}
+        const fn type_name_of<T>(_: &T) -> &'static str {
+            std::any::type_name::<T>()
+        }
+        const F_FN_NAME: &'static str = type_name_of(&f);
+        const FN_NAME_C: &'static str = $crate::cf::concatc!($crate::cf::Sliced(F_FN_NAME, 0..F_FN_NAME.len() - 3), "\0");
+
+        const src_loc: $crate::sys::___tracy_source_location_data = $crate::sys::___tracy_source_location_data {
+            name: NAME_C.as_ptr() as *const _,
+            function: FN_NAME_C.as_ptr() as *const _,
+            file: FILE_C.as_ptr() as *const _,
+            line: LINENO,
+            color: 0,
+        };
+        let ctx = unsafe { $crate::sys::___tracy_emit_zone_begin_callstack(&src_loc as *const _, 16, 1) };
+        $crate::Span::private_new(ctx)
+    }}
+}
 
 impl Span {
     /// Start a new Tracy span.

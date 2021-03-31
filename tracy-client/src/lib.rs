@@ -17,6 +17,7 @@
 
 use std::alloc;
 use std::ffi::CString;
+use std::marker::PhantomData;
 
 #[doc(hidden)]
 pub use tracy_client_sys as sys;
@@ -27,13 +28,13 @@ pub use const_format as cf;
 /// A handle representing a span of execution.
 pub struct Span(
     sys::TracyCZoneCtx,
-    std::marker::PhantomData<*mut sys::TracyCZoneCtx>,
+    PhantomData<*mut sys::TracyCZoneCtx>,
 );
 
 impl Span {
     #[doc(hidden)]
     pub fn private_new(ctx: sys::TracyCZoneCtx) -> Self {
-        Self(ctx, std::marker::PhantomData)
+        Self(ctx, PhantomData)
     }
 }
 
@@ -73,7 +74,7 @@ macro_rules! static_span {
             line: LINENO,
             color: 0,
         };
-        let ctx = unsafe { $crate::sys::___tracy_emit_zone_begin_callstack(&src_loc as *const _, 16, 1) };
+        let ctx = unsafe { $crate::sys::___tracy_emit_zone_begin(&src_loc as *const _, 1) };
         $crate::Span::private_new(ctx)
     }};
     ($name:expr) => {{
@@ -100,7 +101,7 @@ macro_rules! static_span {
             line: LINENO,
             color: 0,
         };
-        let ctx = unsafe { $crate::sys::___tracy_emit_zone_begin_callstack(&src_loc as *const _, 16, 1) };
+        let ctx = unsafe { $crate::sys::___tracy_emit_zone_begin(&src_loc as *const _, 1) };
         $crate::Span::private_new(ctx)
     }}
 }

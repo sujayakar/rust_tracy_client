@@ -22,3 +22,6 @@ enable = [ "tracy-client-sys/enable" ]
 delayed-init = [ "tracy-client-sys/delayed-init" ]
 lowres-timer = [ "tracy-client-sys/lowres-timer" ]
 noexit = [ "tracy-client-sys/noexit" ]
+
+[profile.release]
+debug = true

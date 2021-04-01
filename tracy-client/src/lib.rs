@@ -33,8 +33,19 @@ pub struct Span(
 
 impl Span {
     #[doc(hidden)]
+    #[inline(always)]
     pub fn private_new(ctx: sys::TracyCZoneCtx) -> Self {
         Self(ctx, PhantomData)
+    }
+}
+
+impl Drop for Span {
+    #[inline(always)]
+    fn drop(&mut self) {
+        // SAFE: the only way to construct `Span` is by creating a valid tracy zone context.
+        unsafe {
+            sys::___tracy_emit_zone_end(self.0);
+        }
     }
 }
 
@@ -156,15 +167,6 @@ impl Span {
         // SAFE: the only way to construct `Span` is by creating a valid tracy zone context.
         unsafe {
             sys::___tracy_emit_zone_text(self.0, text.as_ptr() as _, text.len());
-        }
-    }
-}
-
-impl Drop for Span {
-    fn drop(&mut self) {
-        // SAFE: the only way to construct `Span` is by creating a valid tracy zone context.
-        unsafe {
-            sys::___tracy_emit_zone_end(self.0);
         }
     }
 }

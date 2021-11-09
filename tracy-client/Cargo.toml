@@ -13,12 +13,12 @@ High level bindings to the client libraries for the Tracy profiler
 """
 
 [dependencies]
-tracy-client-sys = { path = "../tracy-client-sys", version = "0.13.0", default-features = false }
+tracy-client-sys = { path = "../tracy-client-sys", version = "0.13.0", default-features = false, optional = true }
 const_format = { version = "=0.2.8", features = ["fmt"] }
 
 [features]
 default = [ "enable" ]
-enable = [ "tracy-client-sys/enable" ]
+enable = [ "tracy-client-sys", "tracy-client-sys/enable" ]
 delayed-init = [ "tracy-client-sys/delayed-init" ]
 lowres-timer = [ "tracy-client-sys/lowres-timer" ]
 noexit = [ "tracy-client-sys/noexit" ]

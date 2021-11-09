@@ -13,7 +13,7 @@
 //! `enable` feature flag provided by this crate.
 //!
 //! [Tracy profiler]: https://github.com/wolfpld/tracy
-#![feature(const_fn, const_mut_refs, const_type_name)]
+#![feature(const_mut_refs, const_type_name)]
 
 use std::alloc;
 use std::ffi::CString;

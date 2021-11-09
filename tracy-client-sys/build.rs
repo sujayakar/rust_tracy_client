@@ -35,6 +35,8 @@ fn main() {
             .warnings(false)
             .cpp(true)
             .flag_if_supported("-std=gnu++17")
+            .flag("-march=native")
+            .opt_level(3)
             .compile("libtracy-client.a");
     }
 

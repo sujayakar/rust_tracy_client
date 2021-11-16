@@ -3,10 +3,8 @@ use std::alloc;
 #[macro_export]
 macro_rules! static_span {
     () => {{
-        ()
     }};
     ($name:expr) => {{
-        ()
     }};
 }
 
